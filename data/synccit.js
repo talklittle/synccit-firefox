@@ -26,6 +26,18 @@ if(!(typeof(addStyle) == 'function')) {
 	addStyle=function(css){ document.documentElement.appendChild(document.createElement('style')).appendChild(document.createTextNode(css)); }; 
 }
 
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Working_with_Objects
+function showProps(obj, objName) {
+  var result = "";
+  for (var i in obj) {
+    if (obj.hasOwnProperty(i)) {
+        result += objName + "." + i + " = " + obj[i] + "\n";
+    }
+  }
+  return result;
+}
+
+
 
 // this is quite possibly the most infuriating thing i've ever seen
 // log username. undefined
@@ -160,30 +172,35 @@ else {
 
 	//console.log(array.toString());
 
-	var datastring = "username=" + username + "&auth=" + auth + "&dev=" + devname + "&mode=read" + "&links=" + array.toString();
+	var content = {
+		username: username,
+		auth: auth,
+		dev: devname,
+		mode: "read",
+		links: array.toString()
+	};
 
 	//console.log(datastring);
 
 	// download visited links
 	// this is using the regular mode, not json
 	// didn't have json implemented yet server side
-	self.port.emit("apiRequest", {
-	  method: "POST",
+	self.port.emit("apiPostRequest", {
 	  url: api,
-	  data: datastring,
-	  headers: {
-	    "Content-Type": "application/x-www-form-urlencoded"
-	  },
-	  onComplete: function(response) {
-	    /*if (response.responseText.indexOf("Logged in as") > -1) {
+	  content: content
+	});
+	self.port.on("onApiRequestComplete", function(response) {
+	    /*if (response.text.indexOf("Logged in as") > -1) {
 	      location.href = "http://www.example.net/dashboard";
 	    }*/
 		
-		//console.log(response.responseText);
+		//console.log(response);
+		//console.log(response.status);
+		//console.log(response.text);
+		console.log(showProps(response, "Response"));
 
-		parseLinks(response.responseText);
+		parseLinks(response.text);
 
-	  }
 	});
 
 }
@@ -424,21 +441,24 @@ function addSelf(link, count) {
 
 function clickedLink(link) {
 	
-	var datastring = "username=" + username + "&auth=" + auth + "&dev=" + devname + "&mode=update" + "&links=" + link;
+	var content = {
+		username: username,
+		auth: auth,
+		dev: devname,
+		mode: "update",
+		links: link
+	};
 	//console.log(datastring);
-	self.port.emit("apiRequest", {
-	  method: "POST",
+	self.port.emit("apiPostRequest", {
 	  url: api,
-	  data: datastring,
-	  headers: {
-	    "Content-Type": "application/x-www-form-urlencoded"
-	  },
-	  onComplete: function(response) {
-	    /*if (response.responseText.indexOf("Logged in as") > -1) {
+	  content: content
+	});
+	self.port.on("onApiRequestComplete", function(response) {
+	    /*if (response.text.indexOf("Logged in as") > -1) {
 	      location.href = "http://www.example.net/dashboard";
 	    }*/
 		
-		console.log(response.responseText);
+		console.log(response.text);
 		var array = localStorage['synccit-link'].split(',');
 		if(array.length < 2) {
 			localStorage['synccit-link'] = "";
@@ -457,9 +477,8 @@ function clickedLink(link) {
 		}
 		return true;
 
-		//parseLinks(response.responseText);
+		//parseLinks(response.text);
 
-	  }
 	});
 
 	
@@ -467,21 +486,24 @@ function clickedLink(link) {
 }
 
 function clickedComment(link, count) {
-	var datastring = "username=" + username + "&auth=" + auth + "&dev=" + devname + "&mode=update" + "&comments=" + link + ":" + count;
+	var content = {
+		username: username,
+		auth: auth,
+		dev: devname,
+		mode: "update",
+		comments: link + ":" + count
+	};
 
-	self.port.emit("apiRequest", {
-	  method: "POST",
+	self.port.emit("apiPostRequest", {
 	  url: api,
-	  data: datastring,
-	  headers: {
-	    "Content-Type": "application/x-www-form-urlencoded"
-	  },
-	  onComplete: function(response) {
-	    /*if (response.responseText.indexOf("Logged in as") > -1) {
+	  content: content
+	});
+	self.port.on("onApiRequestComplete", function(response) {
+	    /*if (response.text.indexOf("Logged in as") > -1) {
 	      location.href = "http://www.example.net/dashboard";
 	    }*/
 		
-		console.log(response.responseText);
+		console.log(response.text);
 		var array = localStorage['synccit-comment'].split(',');
 		//console.log(array.toString());
 		if(array.length < 2) {
@@ -501,29 +523,32 @@ function clickedComment(link, count) {
 			localStorage['synccit-comment'] = array.toString();
 		}
 		return true;
-		//parseLinks(response.responseText);
+		//parseLinks(response.text);
 
-	  }
 	});
 
 }
 
 function clickedSelf(link, count) {
-	var datastring = "username=" + username + "&auth=" + auth + "&dev=" + devname + "&mode=update" + "&links=" + link + "&comments=" + link + ":" + count;
+	var content = {
+		username: username,
+		auth: auth,
+		dev: devname,
+		mode: "update",
+		links: link,
+		comments: link + ":" + count
+	};
 
-	self.port.emit("apiRequest", {
-	  method: "POST",
+	self.port.emit("apiPostRequest", {
 	  url: api,
-	  data: datastring,
-	  headers: {
-	    "Content-Type": "application/x-www-form-urlencoded"
-	  },
-	  onComplete: function(response) {
-	    /*if (response.responseText.indexOf("Logged in as") > -1) {
+	  content: content
+	});
+	self.port.on("onApiRequestComplete", function(response) {
+	    /*if (response.text.indexOf("Logged in as") > -1) {
 	      location.href = "http://www.example.net/dashboard";
 	    }*/
 		
-		console.log(response.responseText);
+		console.log(response.text);
 		var array = localStorage['synccit-self'].split(',');
 		if(array.length < 2) {
 			localStorage['synccit-self'] = "";
@@ -542,9 +567,8 @@ function clickedSelf(link, count) {
 			localStorage['synccit-self'] = array.toString();
 		}
 		return true;
-		//parseLinks(response.responseText);
+		//parseLinks(response.text);
 
-	  }
 	});
 }
 
