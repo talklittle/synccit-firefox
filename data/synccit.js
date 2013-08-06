@@ -1,18 +1,5 @@
-// 
-// ==UserScript==
-// @name          synccit 
-// @namespace     http://synccit.com
-// @description   syncs your visited pages and read comments with synccit.com
-// @copyright     2012, Drake Apps, LLC (http://drakeapps.com/)
-// @license       GPL version 3 or any later version; http://www.gnu.org/copyleft/gpl.html/
-// @author		  James Wilson
-// @version		  1.1
-// @include       http://*.reddit.com/*
-// @include		  http://reddit.com/*
-// @downloadURL	  https://github.com/drakeapps/synccit-browser-extension/raw/master/synccit.user.js
-// @updateURL	  https://github.com/drakeapps/synccit-browser-extension/raw/master/synccit.user.js
-// ==/UserScript==
-// 
+// Licensed under GPL version 3: http://www.gnu.org/copyleft/gpl.html
+// Based on original at https://github.com/drakeapps/synccit-browser-extension
 
 var username = localStorage['username'];
 var auth = localStorage['auth'];
@@ -20,7 +7,7 @@ var api = localStorage['api'];
 
 //console.log(username + ' '+ auth + ' ' + api);
 
-var devname = "synccit.user.js,v1.0";
+var devname = "synccit-firefox,v1.1";
 
 if(!(typeof(addStyle) == 'function')) {
 	addStyle=function(css){ document.documentElement.appendChild(document.createElement('style')).appendChild(document.createTextNode(css)); }; 
@@ -189,17 +176,17 @@ else {
 	  url: api,
 	  content: content
 	});
-	self.port.on("onApiRequestComplete", function(response) {
+	self.port.once("onApiRequestComplete", function(responseText) {
 	    /*if (response.text.indexOf("Logged in as") > -1) {
 	      location.href = "http://www.example.net/dashboard";
 	    }*/
 		
 		//console.log(response);
 		//console.log(response.status);
-		//console.log(response.text);
-		console.log(showProps(response, "Response"));
+		console.log(responseText);
+		//console.log(showProps(response, "Response"));
 
-		parseLinks(response.text);
+		parseLinks(responseText);
 
 	});
 
@@ -453,12 +440,12 @@ function clickedLink(link) {
 	  url: api,
 	  content: content
 	});
-	self.port.on("onApiRequestComplete", function(response) {
+	self.port.once("onApiRequestComplete", function(responseText) {
 	    /*if (response.text.indexOf("Logged in as") > -1) {
 	      location.href = "http://www.example.net/dashboard";
 	    }*/
 		
-		console.log(response.text);
+		console.log(responseText);
 		var array = localStorage['synccit-link'].split(',');
 		if(array.length < 2) {
 			localStorage['synccit-link'] = "";
@@ -498,12 +485,12 @@ function clickedComment(link, count) {
 	  url: api,
 	  content: content
 	});
-	self.port.on("onApiRequestComplete", function(response) {
+	self.port.once("onApiRequestComplete", function(responseText) {
 	    /*if (response.text.indexOf("Logged in as") > -1) {
 	      location.href = "http://www.example.net/dashboard";
 	    }*/
 		
-		console.log(response.text);
+		console.log(responseText);
 		var array = localStorage['synccit-comment'].split(',');
 		//console.log(array.toString());
 		if(array.length < 2) {
@@ -543,12 +530,12 @@ function clickedSelf(link, count) {
 	  url: api,
 	  content: content
 	});
-	self.port.on("onApiRequestComplete", function(response) {
+	self.port.once("onApiRequestComplete", function(responseText) {
 	    /*if (response.text.indexOf("Logged in as") > -1) {
 	      location.href = "http://www.example.net/dashboard";
 	    }*/
 		
-		console.log(response.text);
+		console.log(responseText);
 		var array = localStorage['synccit-self'].split(',');
 		if(array.length < 2) {
 			localStorage['synccit-self'] = "";
