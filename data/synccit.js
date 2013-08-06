@@ -14,24 +14,6 @@
 // ==/UserScript==
 // 
 
-// fix for firefox
-// got nothing
-// firefox gives error of $ not defined
-// seems like there are only 2 things that really depend on jquery
-// i'll just try to get rid of them
-// wtf. just reddit.com is giving the error. not my script. reinstalling firefox fixed it. hcalk it up to weird firefox glitch
-// whatever. getting rid of the very small part of jquery i used is probably better
-//this.$ = this.jQuery = jQuery.noConflict(true);
-//this.$ = window.$;
-//this.$ = unsafeWindow.$;
-
-
-
-// chrome doesn't support this anymore. HTML5 way now
-//var username = GM_getValue("username");
-//var auth = GM_getValue("auth");
-//var api = GM_getValue("api");
-
 var username = localStorage['username'];
 var auth = localStorage['auth'];
 var api = localStorage['api'];
@@ -40,12 +22,9 @@ var api = localStorage['api'];
 
 var devname = "synccit.user.js,v1.0";
 
-// add addStyle if doesn't exist
-// if doesn't have xmlHttpRequest, that's a whole other issue
-//if(navigator.userAgent.indexOf('Opera') != -1) {
-//if(!(typeof(GM_addStyle) == 'function')) {
-//	GM_addStyle=function(css){ document.documentElement.appendChild(document.createElement('style')).appendChild(document.createTextNode(css)); }; 
-//}
+if(!(typeof(addStyle) == 'function')) {
+	addStyle=function(css){ document.documentElement.appendChild(document.createElement('style')).appendChild(document.createTextNode(css)); }; 
+}
 
 
 // this is quite possibly the most infuriating thing i've ever seen
@@ -90,8 +69,7 @@ else {
 	// we don't actually add any visited links to your history
 	// just change the color of the link
 	// .synccit-comment is the same as .newComments from RES
-	// changed to remove GM_addStyle to make opera compatible but it doesn't support cross site xmlhttprequest so it doesn't matter
-	GM_addStyle(".synccit-read { color: #551a8b !important;  } .synccit-comment { display: inline; color: orangered;} .synccit-nonew { display: inline; }");
+	addStyle(".synccit-read { color: #551a8b !important;  } .synccit-comment { display: inline; color: orangered;} .synccit-nonew { display: inline; }");
 	//document.documentElement.appendChild(document.createElement('style')).appendChild(document.createTextNode(".synccit-read { color: #551a8b !important;  } .synccit-comment { display: inline; color: orangered;} .synccit-nonew { display: inline; }"));
 
 	//clickedLink("15x1jp");
@@ -189,14 +167,14 @@ else {
 	// download visited links
 	// this is using the regular mode, not json
 	// didn't have json implemented yet server side
-	GM_xmlhttpRequest({
+	self.port.emit("apiRequest", {
 	  method: "POST",
 	  url: api,
 	  data: datastring,
 	  headers: {
 	    "Content-Type": "application/x-www-form-urlencoded"
 	  },
-	  onload: function(response) {
+	  onComplete: function(response) {
 	    /*if (response.responseText.indexOf("Logged in as") > -1) {
 	      location.href = "http://www.example.net/dashboard";
 	    }*/
@@ -448,14 +426,14 @@ function clickedLink(link) {
 	
 	var datastring = "username=" + username + "&auth=" + auth + "&dev=" + devname + "&mode=update" + "&links=" + link;
 	//console.log(datastring);
-	GM_xmlhttpRequest({
+	self.port.emit("apiRequest", {
 	  method: "POST",
 	  url: api,
 	  data: datastring,
 	  headers: {
 	    "Content-Type": "application/x-www-form-urlencoded"
 	  },
-	  onload: function(response) {
+	  onComplete: function(response) {
 	    /*if (response.responseText.indexOf("Logged in as") > -1) {
 	      location.href = "http://www.example.net/dashboard";
 	    }*/
@@ -491,14 +469,14 @@ function clickedLink(link) {
 function clickedComment(link, count) {
 	var datastring = "username=" + username + "&auth=" + auth + "&dev=" + devname + "&mode=update" + "&comments=" + link + ":" + count;
 
-	GM_xmlhttpRequest({
+	self.port.emit("apiRequest", {
 	  method: "POST",
 	  url: api,
 	  data: datastring,
 	  headers: {
 	    "Content-Type": "application/x-www-form-urlencoded"
 	  },
-	  onload: function(response) {
+	  onComplete: function(response) {
 	    /*if (response.responseText.indexOf("Logged in as") > -1) {
 	      location.href = "http://www.example.net/dashboard";
 	    }*/
@@ -533,14 +511,14 @@ function clickedComment(link, count) {
 function clickedSelf(link, count) {
 	var datastring = "username=" + username + "&auth=" + auth + "&dev=" + devname + "&mode=update" + "&links=" + link + "&comments=" + link + ":" + count;
 
-	GM_xmlhttpRequest({
+	self.port.emit("apiRequest", {
 	  method: "POST",
 	  url: api,
 	  data: datastring,
 	  headers: {
 	    "Content-Type": "application/x-www-form-urlencoded"
 	  },
-	  onload: function(response) {
+	  onComplete: function(response) {
 	    /*if (response.responseText.indexOf("Logged in as") > -1) {
 	      location.href = "http://www.example.net/dashboard";
 	    }*/
