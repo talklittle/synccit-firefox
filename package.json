@@ -1,9 +1,9 @@
 {
-  "name": "synccit-firefox",
-  "fullName": "synccit-firefox",
+  "name": "synccit",
+  "fullName": "synccit",
   "id": "jid1-vDgfIYClKOqZxw",
-  "description": "a basic add-on",
-  "author": "",
-  "license": "MPL 2.0",
-  "version": "0.1"
+  "description": "syncs your visited pages and read comments with synccit.com",
+  "author": "synccit.com",
+  "license": "GPL v3",
+  "version": "1.1"
 }
