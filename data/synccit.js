@@ -560,17 +560,23 @@ function clickedSelf(link, count) {
 }
 
 function addShowPage() {
-	// /html/body/div[4]/div/div[1]/ul/li[6]/a
-	// this will replace the advertise link with synccit 
-	var xpath = "/html/body/div[4]/div/div[1]/ul/li[6]/a";
+	// Fix the broken settings page link
+	// changed to add a link next to logout
+	var xpath = "//*[@id=\"header-bottom-right\"]";
 	var l = document.evaluate(xpath, document.documentElement, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 	var adlink = l.snapshotItem(0);
 	if(adlink != null) {
-		adlink.href="#";
-		adlink.onclick = function() {
+		// needs no white space
+		adlink.innerHTML += ' <span class="separator">|</span>\
+<ul class="flat-list hover">\
+<li><a href="#" id="synccit-prefs">synccit</a></li>\
+</ul>\
+		';
+
+		// add the javascript/greasemonkey call to our new synccit link
+		var synccitLink = document.getElementById('synccit-prefs').onclick = function() {
 			showPage();
 		}
-		adlink.innerHTML = "synccit";
 	}
 	
 }
