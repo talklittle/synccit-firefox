@@ -4,36 +4,21 @@
 var username = localStorage['username'];
 var auth = localStorage['auth'];
 var api = localStorage['api'];
+var referral = localStorage['referral'];
 
 //console.log(username + ' '+ auth + ' ' + api);
 
-var devname = "synccit-firefox,v1.1";
+var devname = "synccit-firefox,v1.3";
 
-if(!(typeof(addStyle) == 'function')) {
-	addStyle=function(css){ document.documentElement.appendChild(document.createElement('style')).appendChild(document.createTextNode(css)); }; 
-}
-
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Working_with_Objects
-function showProps(obj, objName) {
-  var result = "";
-  for (var i in obj) {
-    if (obj.hasOwnProperty(i)) {
-        result += objName + "." + i + " = " + obj[i] + "\n";
-    }
-  }
-  return result;
-}
+// add addStyle if doesn't exist
+// if doesn't have xmlHttpRequest, that's a whole other issue
+//if(navigator.userAgent.indexOf('Opera') != -1) {
+//if(!(typeof(GM_addStyle) == 'function')) {
+//	GM_addStyle=function(css){ document.documentElement.appendChild(document.createElement('style')).appendChild(document.createTextNode(css)); }; 
+//}
 
 
 
-// this is quite possibly the most infuriating thing i've ever seen
-// log username. undefined
-// is username undefined? no
-// also, i can't get my form to show up without fucking everything up
-
-//console.log(username);
-//console.log(auth);
-//console.log(api);
 
 if(localStorage['synccit-link'] == "undefined" || localStorage['synccit-link'] == undefined ) {
 	localStorage['synccit-link'] = "";
@@ -51,25 +36,25 @@ if(username == undefined || username == "undefined") {
 		localStorage['api'] = "http://api.synccit.com/api.php";
 	}
 	showPage();
-	//console.log("username undefined");
 }
 
 else {
 
-	//console.log("username not undefined");
-	//console.log('we doin this shit');
 
 	var array = new Array();
 
 	addShowPage();
+
+	
 
 
 	// add read link color
 	// we don't actually add any visited links to your history
 	// just change the color of the link
 	// .synccit-comment is the same as .newComments from RES
-	addStyle(".synccit-read { color: #551a8b !important;  } .synccit-comment { display: inline; color: orangered;} .synccit-nonew { display: inline; }");
-	//document.documentElement.appendChild(document.createElement('style')).appendChild(document.createTextNode(".synccit-read { color: #551a8b !important;  } .synccit-comment { display: inline; color: orangered;} .synccit-nonew { display: inline; }"));
+	// changed to remove GM_addStyle to make opera compatible but it doesn't support cross site xmlhttprequest so it doesn't matter
+	//GM_addStyle(".synccit-read { color: #551a8b !important;  } .synccit-comment { display: inline; color: orangered;} .synccit-nonew { display: inline; }");
+	document.documentElement.appendChild(document.createElement('style')).appendChild(document.createTextNode(".synccit-read { color: #551a8b !important;  } .synccit-comment { display: inline; color: orangered;} .synccit-nonew { display: inline; }"));
 
 	//clickedLink("15x1jp");
 
@@ -127,11 +112,6 @@ else {
 
 	for(var i=0; i<l.snapshotLength; i++) {
 
-	//$('.thing').each(
-		//function(i, obj) {
-			// really just need to pull in data-fullname, but can't seem to get that to work
-			// tried .attr('data-fullname') with no luck, even though RES seems to do that
-			// can split and search the class
 		var elm = l.snapshotItem(i);
 		var string = elm.className;
 		//console.log(elm.className);
@@ -152,43 +132,38 @@ else {
 				}
 			}
 		}
-			//array[i] = id;
-			//console.log(array[i]);
-		//}   //);
 	}
 
 	//console.log(array.toString());
 
-	var content = {
-		username: username,
-		auth: auth,
-		dev: devname,
-		mode: "read",
-		links: array.toString()
-	};
+	var datastring = "username=" + username + "&auth=" + auth + "&dev=" + devname + "&mode=read" + "&links=" + array.toString();
 
 	//console.log(datastring);
 
 	// download visited links
 	// this is using the regular mode, not json
 	// didn't have json implemented yet server side
-	self.port.emit("apiPostRequest", {
+	GM_xmlhttpRequest({
+	  method: "POST",
 	  url: api,
-	  content: content
-	});
-	self.port.once("onApiRequestComplete", function(responseText) {
-	    /*if (response.text.indexOf("Logged in as") > -1) {
+	  data: datastring,
+	  headers: {
+	    "Content-Type": "application/x-www-form-urlencoded"
+	  },
+	  onload: function(response) {
+	    /*if (response.responseText.indexOf("Logged in as") > -1) {
 	      location.href = "http://www.example.net/dashboard";
 	    }*/
 		
-		//console.log(response);
-		//console.log(response.status);
-		console.log(responseText);
-		//console.log(showProps(response, "Response"));
+		//console.log(response.responseText);
 
-		parseLinks(responseText);
+		parseLinks(response.responseText);
 
+	  }
 	});
+
+
+	addReferrals();
 
 }
 
@@ -428,24 +403,21 @@ function addSelf(link, count) {
 
 function clickedLink(link) {
 	
-	var content = {
-		username: username,
-		auth: auth,
-		dev: devname,
-		mode: "update",
-		links: link
-	};
+	var datastring = "username=" + username + "&auth=" + auth + "&dev=" + devname + "&mode=update" + "&links=" + link;
 	//console.log(datastring);
-	self.port.emit("apiPostRequest", {
+	GM_xmlhttpRequest({
+	  method: "POST",
 	  url: api,
-	  content: content
-	});
-	self.port.once("onApiRequestComplete", function(responseText) {
-	    /*if (response.text.indexOf("Logged in as") > -1) {
+	  data: datastring,
+	  headers: {
+	    "Content-Type": "application/x-www-form-urlencoded"
+	  },
+	  onload: function(response) {
+	    /*if (response.responseText.indexOf("Logged in as") > -1) {
 	      location.href = "http://www.example.net/dashboard";
 	    }*/
 		
-		console.log(responseText);
+		console.log(response.responseText);
 		var array = localStorage['synccit-link'].split(',');
 		if(array.length < 2) {
 			localStorage['synccit-link'] = "";
@@ -464,8 +436,9 @@ function clickedLink(link) {
 		}
 		return true;
 
-		//parseLinks(response.text);
+		//parseLinks(response.responseText);
 
+	  }
 	});
 
 	
@@ -473,24 +446,21 @@ function clickedLink(link) {
 }
 
 function clickedComment(link, count) {
-	var content = {
-		username: username,
-		auth: auth,
-		dev: devname,
-		mode: "update",
-		comments: link + ":" + count
-	};
+	var datastring = "username=" + username + "&auth=" + auth + "&dev=" + devname + "&mode=update" + "&comments=" + link + ":" + count;
 
-	self.port.emit("apiPostRequest", {
+	GM_xmlhttpRequest({
+	  method: "POST",
 	  url: api,
-	  content: content
-	});
-	self.port.once("onApiRequestComplete", function(responseText) {
-	    /*if (response.text.indexOf("Logged in as") > -1) {
+	  data: datastring,
+	  headers: {
+	    "Content-Type": "application/x-www-form-urlencoded"
+	  },
+	  onload: function(response) {
+	    /*if (response.responseText.indexOf("Logged in as") > -1) {
 	      location.href = "http://www.example.net/dashboard";
 	    }*/
 		
-		console.log(responseText);
+		console.log(response.responseText);
 		var array = localStorage['synccit-comment'].split(',');
 		//console.log(array.toString());
 		if(array.length < 2) {
@@ -510,32 +480,29 @@ function clickedComment(link, count) {
 			localStorage['synccit-comment'] = array.toString();
 		}
 		return true;
-		//parseLinks(response.text);
+		//parseLinks(response.responseText);
 
+	  }
 	});
 
 }
 
 function clickedSelf(link, count) {
-	var content = {
-		username: username,
-		auth: auth,
-		dev: devname,
-		mode: "update",
-		links: link,
-		comments: link + ":" + count
-	};
+	var datastring = "username=" + username + "&auth=" + auth + "&dev=" + devname + "&mode=update" + "&links=" + link + "&comments=" + link + ":" + count;
 
-	self.port.emit("apiPostRequest", {
+	GM_xmlhttpRequest({
+	  method: "POST",
 	  url: api,
-	  content: content
-	});
-	self.port.once("onApiRequestComplete", function(responseText) {
-	    /*if (response.text.indexOf("Logged in as") > -1) {
+	  data: datastring,
+	  headers: {
+	    "Content-Type": "application/x-www-form-urlencoded"
+	  },
+	  onload: function(response) {
+	    /*if (response.responseText.indexOf("Logged in as") > -1) {
 	      location.href = "http://www.example.net/dashboard";
 	    }*/
 		
-		console.log(responseText);
+		console.log(response.responseText);
 		var array = localStorage['synccit-self'].split(',');
 		if(array.length < 2) {
 			localStorage['synccit-self'] = "";
@@ -554,24 +521,33 @@ function clickedSelf(link, count) {
 			localStorage['synccit-self'] = array.toString();
 		}
 		return true;
-		//parseLinks(response.text);
+		//parseLinks(response.responseText);
 
+	  }
 	});
 }
 
 function addShowPage() {
-	// Fix the broken settings page link
+	// /html/body/div[4]/div/div[1]/ul/li[6]/a
+	// this will replace the advertise link with synccit 
+	//var xpath = "/html/body/div[4]/div/div[1]/ul/li[6]/a";
+
+
+	// link next to logout breaks RES
+	var xpath = "//*[@id=\"header-bottom-left\"]/ul";
+
 	// changed to add a link next to logout
-	var xpath = "//*[@id=\"header-bottom-right\"]";
+	// var xpath = "//*[@id=\"header-bottom-right\"]";
 	var l = document.evaluate(xpath, document.documentElement, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 	var adlink = l.snapshotItem(0);
 	if(adlink != null) {
 		// needs no white space
-		adlink.innerHTML += ' <span class="separator">|</span>\
+		/*adlink.innerHTML += ' <span class="separator">|</span>\
 <ul class="flat-list hover">\
 <li><a href="#" id="synccit-prefs">synccit</a></li>\
 </ul>\
-		';
+		';*/
+		adlink.innerHTML += '<li><a href="#" id="synccit-prefs">synccit</a></li>';
 
 		// add the javascript/greasemonkey call to our new synccit link
 		var synccitLink = document.getElementById('synccit-prefs').onclick = function() {
@@ -581,6 +557,43 @@ function addShowPage() {
 	
 }
 
+function addReferrals() {
+
+	// this loops through all links and adds/changes referral code to a synccit related one
+	// this should be completely transparent and not affect your browsing
+
+	var links = document.getElementsByTagName('a');
+	for(var i=0; i < links.length; i++) {
+
+		if(links[i].href != null && links[i].href != undefined) {
+			
+			var href = links[i].href;
+
+			var domain = href.split('/')[2];
+
+			if(domain != null && domain != undefined) {
+
+				//right now only amazon
+				if(domain.indexOf("amazon") != -1) {
+					href = href.split('?')[0] + "?tag=synccit0e-20";
+					links[i].href = href;
+
+					//tag=synccit0e-20
+				}
+
+			}
+			
+
+			
+
+		}
+		
+
+
+	}
+
+}
+
 function showPage() {
 	if(username == undefined)
 		username = '';
@@ -588,21 +601,28 @@ function showPage() {
 		auth = '';
 	if(api == undefined)
 		api = 'http://api.synccit.com/api.php';
-	// RES is not playing nice with this. it adds content to the page
-	// actually not RES. javascript/html/everyhting just doesn't play nice
+	if(referral == undefined)
+		referral = true;
+	var checkbox = "checked =\"checked\"";
+	if(referral == false || referral == "false") {
+		checkbox = "";
+	}
+	// register.php > create.php. thanks @edzuslv
 	document.getElementById('siteTable').innerHTML = '<div id="synccit-form"> \
 	<h3>username: </h3><br> \
 	<input type="text" id="username" value="'+username+'" ><br> \
 	<h3>auth code: </h3><br><input type="text" id="auth" value="'+auth+'" ><br><br> \
+	<br><input type="checkbox" id="referral" '+checkbox+'> support synccit with referral links? \
 	<a href="javascript: \
 	localStorage[\'username\'] = document.getElementById(\'username\').value; \
 	 localStorage[\'auth\'] = document.getElementById(\'auth\').value; \
 	localStorage[\'api\'] = document.getElementById(\'api\').value; \
+	localStorage[\'referral\'] = document.getElementById(\'referral\').checked; \
 	window.location.reload(); \
 	 " onclick="" id="save" ><h2>save</h2></a><br><br><br> \
 	<h3>api location (default http://api.synccit.com/api.php)</h3><br> \
 	<input type="text" id="api" value="'+api+'"><br><br> \
-	<h2><a href="http://synccit.com/register.php" target="_blank">signup</a></h2><br><br> \
+	<h2><a href="http://synccit.com/create.php" target="_blank">signup</a></h2><br><br> \
 	<em>to get rid of this, put something in username and auth or uninstall synccit extension/script</em> \
 	</div>';
 	return false;
@@ -614,7 +634,6 @@ function saveValues() {
 	localStorage['auth'] = document.getElementById('auth').text;
 	localStorage['api'] = document.getElementById('api').text;
 }
-
 
 
 
